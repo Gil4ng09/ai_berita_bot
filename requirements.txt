@@ -1,0 +1,40 @@
+import requests
+import schedule
+import time
+from configparser import ConfigParser
+from telegram import Bot
+
+config = ConfigParser()
+config.read('config/config.ini')
+
+token = config["telegram"]["8138006508"]
+chat_id = config["telegram"]["6999813043"]
+
+bot = Bot(token=token)
+
+def send_news():
+    try:
+        print("Ngambil berita...")
+        url = "fd5c127398e14b6abc356fc129bf319
+        response = requests.get(url)
+        data = response.json()
+
+        if data["status"] == "ok":
+            berita = data["articles"][:3]
+            pesan = "🗞️ *Berita Terkini:*\n\n"
+            for i, artikel in enumerate(berita, 1):
+                pesan += f"{i}. [{artikel['title']}]({artikel['url']})\n"
+            bot.send_message(chat_id=chat_id, text=pesan, parse_mode="Markdown")
+            print("Berita dikirim ke Telegram.")
+        else:
+            print("Gagal ambil berita:", data.get("message", "unknown error"))
+    except Exception as e:
+        print("Error pas ngirim berita:", e)
+
+schedule.every(5).hours.do(send_news)
+
+send_news()
+
+while True:
+    schedule.run_pending()
+    time.sleep(60)
